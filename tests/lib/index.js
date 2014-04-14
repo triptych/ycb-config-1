@@ -553,7 +553,7 @@ describe('config', function () {
                         libpath.resolve(mojito, 'application.json'),
                         function (err) {
                             if (err) { throw err; }
-                            config.read('modown-newsboxes', 
+                            config.read('modown-newsboxes',
                                         'application', {device: 'mobile'}, function (err, have) {
                                 try {
                                     expect(have).to.be.an('object');
@@ -856,6 +856,7 @@ describe('config', function () {
                 });
             });
 
+            /**
             it('clones the configuration object if the `clone` option is passed', function (next) {
                 var config = new Config({
                     clone: true
@@ -887,6 +888,52 @@ describe('config', function () {
                     }
                 );
             });
+            **/
+
+            it('freezes the config object if the `safeMode` option is passed', function (next) {
+                var config = new Config({
+                    safeMode: true
+                });
+                config.addConfig(
+                    'simple',
+                    'dimensions',
+                    libpath.resolve(touchdown, 'configs/dimensions.json'),
+                    function (err) {
+                        if (err) { throw err;}
+                        config.addConfig(
+                            'simple',
+                            'foo',
+                            libpath.resolve(touchdown, 'configs/foo.js'),
+                            function (err) {
+                                //console.log("hi");
+                                if (err) { throw err; }
+                                config.readNoMerge('simple', 'foo', {device: 'mobile'}, function (err, have) {
+                                    //console.log("have:" , have);
+                                    expect(have).to.be.an('array');
+                                    expect(have[0]).to.be.an('object');
+                                    expect(have[0].TODO).to.equal('TODO');
+
+
+                                    //config.readNoMerge('simple', 'foo', {device: 'mobile'}, function (err, have) {
+                                    //    console.log("err:",err);
+                                        //expect(err.message).to.equal('Cannot assign to read only property \'TODO\' of #<Object>');
+                                    //    next();
+                                    //});
+                                     try {
+                                        have[0].TODO = 'DONE';
+                                        next();
+                                    } catch (err) {
+                                        expect(err.message).to.equal('Cannot assign to read only property \'TODO\' of #<Object>');
+                                        next(err);
+                                    }
+                                });
+                            }
+                        );
+                    }
+
+                );
+            });
+
         });
 
 
@@ -941,7 +988,7 @@ describe('config', function () {
                                 next(err);
                             }
                         });
-                    }    
+                    }
                 );
             });
 
